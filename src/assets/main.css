@@ -1,0 +1,6 @@
+@import "tailwindcss";
+*{
+    font-family: 'Poppins', Verdana, Geneva, Tahoma, sans-serif;
+    transition: 0.2s;
+    user-select: none;
+}
