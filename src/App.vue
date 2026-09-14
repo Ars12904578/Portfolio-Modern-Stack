@@ -55,7 +55,7 @@ onUnmounted(() => {
   />
   <!-- Design -->
   <div
-    class="fixed w-200 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
+    class="fixed w-190 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
   ></div>
   <!-- Reactive text of my name -->
   <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
