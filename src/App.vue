@@ -25,8 +25,8 @@ const floatings = ref([
 
 const floatingGlassSettings = ref({
   refraction: 100,
-  edgeIntensity: 1,
-  rimHighlights: 1,
+  edgeIntensity: 0.5,
+  rimHighlights: 0.5,
   blur: 0,
 });
 
@@ -55,7 +55,7 @@ onUnmounted(() => {
   />
   <!-- Design -->
   <div
-    class="fixed w-210 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
+    class="fixed w-200 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
   ></div>
   <!-- Reactive text of my name -->
   <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
@@ -128,7 +128,7 @@ onUnmounted(() => {
   <div
     class="fixed box-border overflow-hidden bg-slate-950/30 backdrop-blur-3xl text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
     :class="[
-      'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20 pb-5',
+      'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20 pb-10',
       isExploreClicked
         ? 'translate-y-0'
         : 'translate-y-full pointer-events-none',
