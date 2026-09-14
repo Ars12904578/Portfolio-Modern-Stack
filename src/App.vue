@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import LiquidGlass from "./components/LiquidGlass.vue";
-import { useRouter, RouterView } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
-const router = useRouter();
+let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
+import { Search, ChevronLeft } from "@lucide/vue";
+import { useRouter, useRoute } from "vue-router";
 const isLoaded = ref(false);
 const isLoaderVisible = ref(true);
-let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
-
+const router = useRouter();
+const route = useRoute();
 const floatings = ref([
   {
     title: "Programmer",
@@ -36,7 +37,7 @@ onMounted(() => {
     isLoaded.value = true;
     loaderExitTimer = setTimeout(() => {
       isLoaderVisible.value = false;
-    }, 1000);
+    }, 450);
   }, 1500);
 });
 
@@ -46,11 +47,17 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <!-- White background picture -->
   <img
     src="/bg.jpg"
     alt="bg"
     class="object-cover fixed w-full h-dvh object-center"
   />
+  <!-- Design -->
+  <div
+    class="fixed w-210 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
+  ></div>
+  <!-- Reactive text of my name -->
   <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
     <span
       class="text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold"
@@ -59,16 +66,24 @@ onUnmounted(() => {
       Tungpalan
     </span>
   </div>
+  <!-- My picture -->
   <img
     src="/assets/Tungpalan__Arvi_Jay_B-removebg-preview.png"
     alt="Arvi"
-    class="object-contain object-bottom w-fit h-8/10 drop-shadow-[0_10px_20px_rgba(0,0,0,1)] fixed bottom-0 left-1/2 right-1/2 -translate-x-1/2"
+    class="object-contain object-bottom w-fit h-8/10 drop-shadow-[0_10px_20px_rgba(0,0,0,1)] fixed bottom-0 left-1/2 -translate-x-1/2"
+    :class="isExploreClicked ? 'scale-50' : 'scale-100'"
   />
+  <!-- CTA button -->
   <div
-    class="w-fit z-99 fixed bottom-5 sm:bottom-10 left-1/2 right-1/2 -translate-x-1/2"
+    class="w-fit z-99 fixed left-1/2 -translate-x-1/2 flex flex-row gap-2"
+    :class="
+        isExploreClicked
+          ? 'bottom-2 sm:bottom-2'
+          : 'bottom-5 sm:bottom-10'
+      "
   >
     <LiquidGlass
-      class="font-light rounded-full active:bg-white active:text-black cursor-pointer"
+      class="font-light rounded-full active:bg-white active:text-black cursor-pointer flex items-center justify-center gap-2"
       :class="
         isExploreClicked
           ? 'text-black bg-white hover:scale-105 active:scale-95 p-2 px-10 text-xl'
@@ -81,9 +96,21 @@ onUnmounted(() => {
       @click="isExploreClicked = !isExploreClicked"
     >
       {{ isExploreClicked ? "Close" : "Explore" }}
+      <component :is="isExploreClicked ? null : Search" />
+    </LiquidGlass>
+    <LiquidGlass
+      v-if="isExploreClicked && route.path !== '/'"
+      class="font-light rounded-full cursor-pointer bg-white/10 text-white hover:scale-105 active:scale-95 w-12 h-12"
+      :refraction="50"
+      :edgeIntensity="1"
+      :rimHighlights="0.2"
+      :blur="2"
+      @click="router.back()"
+    >
+      <ChevronLeft />
     </LiquidGlass>
   </div>
-
+  <!-- Floaters -->
   <div
     v-for="floating in floatings"
     :key="floating.title"
@@ -97,13 +124,19 @@ onUnmounted(() => {
       {{ floating.title }}
     </LiquidGlass>
   </div>
+  <!-- Router Page -->
   <div
-    class="fixed p-2 inset-x-0 box-border bg-black text-white"
-    :class="isExploreClicked ? 'bottom-0 top-0' : '-bottom-1/2 top-full'"
+    class="fixed box-border overflow-hidden bg-slate-950/30 backdrop-blur-3xl text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
+    :class="[
+      'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20 pb-5',
+      isExploreClicked
+        ? 'translate-y-0'
+        : 'translate-y-full pointer-events-none',
+    ]"
   >
-    <RouterView class="w-full h-full" />
+    <RouterView />
   </div>
-
+  <!-- Loader -->
   <div
     v-if="isLoaderVisible"
     class="loading-overlay fixed z-999 inset-0 bg-black flex flex-col items-center justify-center"

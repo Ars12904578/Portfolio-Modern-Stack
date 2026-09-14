@@ -2,12 +2,22 @@
 defineOptions({ inheritAttrs: false });
 import { computed, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from "vue";
 
+type Quality = "auto" | "high" | "low";
+
 type Props = {
   blur?: number;
   draggable?: boolean;
   refraction?: number;
   edgeIntensity?: number;
   rimHighlights?: number;
+  /**
+   * "high"  -> always use the SVG feDisplacementMap refraction effect.
+   * "low"   -> never build the displacement map, just use backdrop-filter blur.
+   * "auto"  -> detect device capability once and pick high/low automatically.
+   */
+  quality?: Quality;
+  /** Round observed size to this many px before rebuilding the displacement map. */
+  resizeGranularity?: number;
 };
 
 const props = withDefaults(defineProps<Props>(), {
@@ -16,8 +26,50 @@ const props = withDefaults(defineProps<Props>(), {
   refraction: 10,
   edgeIntensity: 1,
   rimHighlights: 0.35,
+  quality: "auto",
+  resizeGranularity: 8,
 });
 
+// ---------------------------------------------------------------------------
+// Device capability detection (runs once, cheap, no layout thrash)
+// ---------------------------------------------------------------------------
+function detectLowPowerDevice(): boolean {
+  if (typeof navigator === "undefined") return false;
+
+  const cores = navigator.hardwareConcurrency ?? 4;
+  // deviceMemory is non-standard but present on most Chromium browsers.
+  const memory = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? 4;
+
+  const reducedMotion =
+    typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedTransparency =
+    typeof matchMedia !== "undefined" &&
+    matchMedia("(prefers-reduced-transparency: reduce)").matches;
+
+  // Any one of these is a reasonable signal that live SVG refraction
+  // (feDisplacementMap recomputed every composited frame) will be janky.
+  return reducedMotion || reducedTransparency || cores <= 4 || memory <= 4;
+}
+
+// Detected once per app load, not per-instance, so multiple glass panels
+// don't each pay for their own navigator/matchMedia lookups.
+let cachedLowPowerDetection: boolean | null = null;
+function isLowPowerDevice(): boolean {
+  if (cachedLowPowerDetection === null) {
+    cachedLowPowerDetection = detectLowPowerDevice();
+  }
+  return cachedLowPowerDetection;
+}
+
+const isLowPower = computed(() => {
+  if (props.quality === "high") return false;
+  if (props.quality === "low") return true;
+  return isLowPowerDevice();
+});
+
+// ---------------------------------------------------------------------------
+// Displacement map generation (only ever runs when refraction is enabled)
+// ---------------------------------------------------------------------------
 function buildDisplacementMap(
   w: number,
   h: number,
@@ -30,8 +82,11 @@ function buildDisplacementMap(
   const cornerX = Math.max(halfWidth - radius, 0);
   const cornerY = Math.max(halfHeight - radius, 0);
 
-  const maxDim = 48;
-  const minShortAxis = 16;
+  // Lower cap on low-power devices: the map is cheap either way (it's tiny),
+  // but a smaller canvas means less work per resize event and a smaller
+  // data: URI for the browser to decode into the filter.
+  const maxDim = isLowPower.value ? 28 : 48;
+  const minShortAxis = isLowPower.value ? 10 : 16;
   const baseScale = Math.min(1, maxDim / Math.max(w, h));
   const cw = Math.max(w <= h ? minShortAxis : 1, Math.round(w * baseScale));
   const ch = Math.max(h <= w ? minShortAxis : 1, Math.round(h * baseScale));
@@ -42,7 +97,7 @@ function buildDisplacementMap(
   const canvas = document.createElement("canvas");
   canvas.width = cw;
   canvas.height = ch;
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: false });
   if (!ctx) return "";
 
   const imageData = ctx.createImageData(cw, ch);
@@ -105,7 +160,6 @@ function buildDisplacementMap(
   return canvas.toDataURL("image/png");
 }
 
-
 function createFilterId() {
   let id = "";
   do {
@@ -118,6 +172,7 @@ const filterId = createFilterId();
 const glassEl = ref<HTMLElement | null>(null);
 const lgMap = ref<SVGFEImageElement | null>(null);
 const lgFilter = ref<SVGFilterElement | null>(null);
+
 const supportsBackdropBlur =
   typeof CSS !== "undefined" &&
   (CSS.supports("backdrop-filter", "blur(1px)") ||
@@ -126,8 +181,16 @@ const supportsSvgBackdropFilter =
   supportsBackdropBlur &&
   (CSS.supports("backdrop-filter", "url(#liquid-glass-filter)") ||
     CSS.supports("-webkit-backdrop-filter", "url(#liquid-glass-filter)"));
+
+// The expensive part on old / integrated GPUs isn't building the tiny
+// displacement-map canvas - it's the browser re-evaluating
+// feDisplacementMap on backdrop-filter every composited frame. So the
+// single biggest win for low-power hardware is skipping the SVG filter
+// entirely and falling back to a plain CSS blur.
+const useRefraction = computed(() => supportsSvgBackdropFilter && !isLowPower.value);
+
 const backdropBlurValue = computed(() => {
-  if (supportsSvgBackdropFilter) {
+  if (useRefraction.value) {
     return `blur(${props.blur}px) url(#${filterId})`;
   }
   return supportsBackdropBlur ? `blur(${props.blur}px)` : "none";
@@ -202,6 +265,15 @@ function stopDragging(event: PointerEvent) {
 }
 
 function updateFilter(width: number, height: number) {
+  // Skip all canvas + SVG work when refraction is disabled - this is the
+  // main CPU/GPU saving on low-power hardware.
+  if (!useRefraction.value) {
+    renderPending = false;
+    lastRenderedWidth = width;
+    lastRenderedHeight = height;
+    return;
+  }
+
   const w = Math.round(width);
   const h = Math.round(height);
   if (w <= 0 || h <= 0) return;
@@ -274,14 +346,24 @@ function getBorderBoxSize(entry: ResizeObserverEntry) {
   return { width: bounds.width, height: bounds.height };
 }
 
+// Round to the configured granularity so continuous resizes (window drags,
+// animated layout, flexbox reflow) don't trigger a full canvas rebuild on
+// every single pixel change - this is one of the more common jank sources
+// on low-end machines.
+function quantize(value: number, step: number) {
+  if (step <= 1) return Math.round(value);
+  return Math.round(value / step) * step;
+}
+
 onMounted(() => {
   if (!glassEl.value) return;
 
   resizeObserver = new ResizeObserver((entries) => {
     for (const entry of entries) {
       const size = getBorderBoxSize(entry);
-      const w = Math.round(size.width);
-      const h = Math.round(size.height);
+      const step = isLowPower.value ? Math.max(props.resizeGranularity, 8) : props.resizeGranularity;
+      const w = quantize(size.width, step);
+      const h = quantize(size.height, step);
 
       if (w === lastObservedWidth && h === lastObservedHeight) continue;
       lastObservedWidth = w;
@@ -312,18 +394,20 @@ onMounted(() => {
   intersectionObserver.observe(glassEl.value);
 
   const initialBounds = glassEl.value.getBoundingClientRect();
-  const initialWidth = initialBounds.width;
-  const initialHeight = initialBounds.height;
-  lastObservedWidth = Math.round(initialWidth);
-  lastObservedHeight = Math.round(initialHeight);
+  lastObservedWidth = Math.round(initialBounds.width);
+  lastObservedHeight = Math.round(initialBounds.height);
+
+  // First paint: build the map (or skip it) immediately rather than
+  // waiting for a resize event.
+  requestRender(lastObservedWidth, lastObservedHeight);
 });
 
 watch(
-  () => [
-    props.refraction,
-    props.edgeIntensity,
-  ],
+  () => [props.refraction, props.edgeIntensity, isLowPower.value],
   () => {
+    // Force a fresh map build (or a switch to/from the blur-only fallback)
+    // even if the observed size hasn't changed.
+    lastMapKey = "";
     if (lastObservedWidth && lastObservedHeight) {
       requestRender(lastObservedWidth, lastObservedHeight);
     }
@@ -345,7 +429,7 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
     :ref="glass.setGlassEl"
     :class="[
       'glass-liquid select-none flex items-center justify-center',
-      { 'glass-liquid--blur-fallback': !supportsSvgBackdropFilter },
+      { 'glass-liquid--blur-fallback': !useRefraction },
     ]"
     v-bind="$attrs"
     @pointerdown="onPointerDown"
@@ -360,7 +444,13 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
     <slot />
   </div>
 
-  <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <svg
+    v-if="useRefraction"
+    width="0"
+    height="0"
+    style="position: absolute"
+    aria-hidden="true"
+  >
     <filter
       :ref="glass.setLgFilter"
       :id="glass.filterId"
@@ -396,6 +486,8 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
 <style scoped>
 .glass-liquid {
   box-sizing: border-box;
+  contain: layout style paint;
+  isolation: isolate;
   translate: var(--glass-drag-x, 0px) var(--glass-drag-y, 0px);
   cursor: v-bind("props.draggable ? 'grab' : 'auto'");
   touch-action: v-bind("props.draggable ? 'none' : 'auto'");
