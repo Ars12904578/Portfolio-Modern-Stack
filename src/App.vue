@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import LiquidGlass from "./components/LiquidGlass.vue";
 import { useRouter, RouterView } from "vue-router";
-import { ref } from "vue";
-// const router = useRouter();
+import { ref, onMounted, onUnmounted } from "vue";
+const router = useRouter();
+const isLoaded = ref(false);
+const isLoaderVisible = ref(true);
+let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
 
 const floatings = ref([
   {
@@ -27,6 +30,19 @@ const floatingGlassSettings = ref({
 });
 
 const isExploreClicked = ref(false);
+
+onMounted(() => {
+  setTimeout(() => {
+    isLoaded.value = true;
+    loaderExitTimer = setTimeout(() => {
+      isLoaderVisible.value = false;
+    }, 1000);
+  }, 1500);
+});
+
+onUnmounted(() => {
+  if (loaderExitTimer) clearTimeout(loaderExitTimer);
+});
 </script>
 
 <template>
@@ -82,15 +98,46 @@ const isExploreClicked = ref(false);
     </LiquidGlass>
   </div>
   <div
-    class="fixed p-2 inset-x-0 box-border bg-black/50 text-white"
-    :class="
-      isExploreClicked
-        ? 'bottom-0 top-0 scale-100'
-        : '-bottom-1/2 top-full scale-0'
-    "
+    class="fixed p-2 inset-x-0 box-border bg-black text-white"
+    :class="isExploreClicked ? 'bottom-0 top-0' : '-bottom-1/2 top-full'"
   >
     <RouterView class="w-full h-full" />
   </div>
+
+  <div
+    v-if="isLoaderVisible"
+    class="loading-overlay fixed z-999 inset-0 bg-black flex flex-col items-center justify-center"
+    :class="{ 'loading-overlay--exiting': isLoaded }"
+  >
+    <img
+      src="/assets/android-chrome-192x192.png"
+      alt="icon"
+      class="loading-animation"
+    />
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.loading-animation {
+  animation: loading 1s ease infinite;
+}
+.loading-overlay {
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+.loading-overlay--exiting {
+  opacity: 0;
+  pointer-events: none;
+}
+@keyframes loading {
+  0% {
+    scale: 0.8;
+  }
+  50% {
+    scale: 1;
+  }
+  100% {
+    scale: 0.8;
+  }
+}
+</style>

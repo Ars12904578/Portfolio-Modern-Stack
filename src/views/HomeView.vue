@@ -1,3 +1,3 @@
 <script setup lang="ts"></script>
-<template>Home</template>
+<template>Under Development</template>
 <style scoped></style>
