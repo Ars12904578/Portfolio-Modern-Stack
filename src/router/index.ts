@@ -9,9 +9,19 @@ const router = createRouter({
       component: () => import("../views/HomeView.vue"),
     },
     {
-      name: "about",
-      path: "/about",
-      component: () => import("../views/AboutView.vue"),
+      name: "projects",
+      path: "/project",
+      component: () => import("../views/ProjectsView.vue"),
+    },
+    {
+      name: "photo",
+      path: "/gallery",
+      component: () => import("../views/PhotosView.vue"),
+    },
+    {
+      name: "photo-view",
+      path: "/gallery/photo",
+      component: () => import("../views/PhotoView.vue"),
     },
   ],
 })

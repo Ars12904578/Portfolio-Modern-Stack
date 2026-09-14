@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import LiquidGlass from "./components/LiquidGlass.vue";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
 import { Search, ChevronLeft } from "@lucide/vue";
 import { useRouter, useRoute } from "vue-router";
@@ -31,6 +31,15 @@ const floatingGlassSettings = ref({
 });
 
 const isExploreClicked = ref(false);
+
+watch(
+  () => route.path,
+  (path) => {
+    if (path !== "/") {
+      isExploreClicked.value = true;
+    }
+  },
+);
 
 onMounted(() => {
   setTimeout(() => {
@@ -76,18 +85,14 @@ onUnmounted(() => {
   <!-- CTA button -->
   <div
     class="w-fit z-99 fixed left-1/2 -translate-x-1/2 flex flex-row gap-2"
-    :class="
-        isExploreClicked
-          ? 'bottom-2 sm:bottom-2'
-          : 'bottom-5 sm:bottom-10'
-      "
+    :class="isExploreClicked ? 'bottom-2 sm:bottom-2' : 'bottom-5 sm:bottom-10'"
   >
     <LiquidGlass
-      class="font-light rounded-full active:bg-white active:text-black cursor-pointer flex items-center justify-center gap-2"
+      class="font-light rounded-full text-white hover:bg-white hover:text-black cursor-pointer flex items-center justify-center gap-2"
       :class="
         isExploreClicked
-          ? 'text-black bg-white hover:scale-105 active:scale-95 p-2 px-10 text-xl'
-          : 'text-white bg-black/50 hover:scale-120 active:scale-80 p-5 px-20 text-3xl'
+          ? 'hover:scale-105 active:scale-95 p-2 px-10 text-xl bg-white/10'
+          : 'hover:scale-120 active:scale-80 p-5 px-20 text-3xl bg-black/40'
       "
       :refraction="100"
       :edgeIntensity="1"
@@ -98,17 +103,24 @@ onUnmounted(() => {
       {{ isExploreClicked ? "Close" : "Explore" }}
       <component :is="isExploreClicked ? null : Search" />
     </LiquidGlass>
-    <LiquidGlass
-      v-if="isExploreClicked && route.path !== '/'"
-      class="font-light rounded-full cursor-pointer bg-white/10 text-white hover:scale-105 active:scale-95 w-12 h-12"
-      :refraction="50"
-      :edgeIntensity="1"
-      :rimHighlights="0.2"
-      :blur="2"
-      @click="router.back()"
+    <div
+      class="back-button-slot"
+      :class="{
+        'back-button-slot--visible': isExploreClicked && route.path !== '/',
+      }"
     >
-      <ChevronLeft />
-    </LiquidGlass>
+      <LiquidGlass
+        class="h-12 w-12 shrink-0 cursor-pointer rounded-full bg-white/10 font-light text-white hover:bg-white hover:text-black active:scale-90"
+        :refraction="100"
+        :edgeIntensity="1"
+        :rimHighlights="0.5"
+        :blur="4"
+        :aria-label="'Go back'"
+        @click="router.back()"
+      >
+        <ChevronLeft />
+      </LiquidGlass>
+    </div>
   </div>
   <!-- Floaters -->
   <div
@@ -128,13 +140,17 @@ onUnmounted(() => {
   <div
     class="fixed box-border overflow-hidden bg-slate-950/30 backdrop-blur-3xl text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
     :class="[
-      'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20 pb-10',
+      'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20',
       isExploreClicked
         ? 'translate-y-0'
         : 'translate-y-full pointer-events-none',
     ]"
   >
-    <RouterView />
+    <RouterView v-slot="{ Component, route: viewRoute }">
+      <Transition name="route" mode="out-in">
+        <component :is="Component" :key="viewRoute.fullPath" />
+      </Transition>
+    </RouterView>
   </div>
   <!-- Loader -->
   <div
@@ -153,6 +169,38 @@ onUnmounted(() => {
 <style scoped>
 .loading-animation {
   animation: loading 1s ease infinite;
+}
+.back-button-slot {
+  display: flex;
+  max-width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateX(-8px) scale(0.9);
+  transition:
+    max-width 0.25s ease,
+    opacity 0.2s ease,
+    transform 0.25s ease;
+  pointer-events: none;
+}
+.back-button-slot--visible {
+  max-width: 3rem;
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  pointer-events: auto;
+}
+.route-enter-active,
+.route-leave-active {
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.route-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.route-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
 }
 .loading-overlay {
   opacity: 1;
