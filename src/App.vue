@@ -5,6 +5,7 @@ let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
 import { Search, ChevronLeft } from "@lucide/vue";
 import { useRouter, useRoute } from "vue-router";
 const isLoaded = ref(false);
+const isExploreClicked = ref(false);
 const isLoaderVisible = ref(true);
 const router = useRouter();
 const route = useRoute();
@@ -29,8 +30,6 @@ const floatingGlassSettings = ref({
   rimHighlights: 0.5,
   blur: 0,
 });
-
-const isExploreClicked = ref(false);
 
 watch(
   () => route.path,
@@ -64,12 +63,13 @@ onUnmounted(() => {
   />
   <!-- Design -->
   <div
-    class="fixed w-190 aspect-square rounded-full bg-slate-900 -bottom-100 left-5/10 -translate-x-1/2"
+    class="fixed w-190 aspect-square rounded-full -bottom-100 left-5/10 -translate-x-1/2"
+    :class="route.path == '/gallery' || route.path == '/gallery/photo' ? 'bg-amber-900' : 'bg-slate-900'"
   ></div>
   <!-- Reactive text of my name -->
   <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
     <span
-      class="text-center text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold"
+      class="text-center text-6xl md:text-7xl lg:text-8xl font-semibold"
     >
       Arvi Jay <br />
       Tungpalan
@@ -90,14 +90,17 @@ onUnmounted(() => {
     <LiquidGlass
       class="font-light rounded-full text-white hover:bg-white hover:text-black cursor-pointer flex items-center justify-center gap-2"
       :class="
-        isExploreClicked
-          ? 'hover:scale-105 active:scale-95 p-2 px-10 text-xl bg-white/10'
-          : 'hover:scale-120 active:scale-80 p-5 px-20 text-3xl bg-black/40'
+        [
+          isExploreClicked
+          ? 'hover:scale-105 active:scale-95 p-2 px-10 text-xl'
+          : 'hover:scale-120 active:scale-80 p-5 px-20 text-3xl',
+          route.path == '/gallery' || route.path == '/gallery/photo' ? isExploreClicked ? 'bg-amber-800/50' : 'bg-amber-800/20' : 'bg-slate-800/50'
+        ]
       "
       :refraction="100"
       :edgeIntensity="1"
       :rimHighlights="0.5"
-      :blur="4"
+      :blur="1"
       @click="isExploreClicked = !isExploreClicked"
     >
       {{ isExploreClicked ? "Close" : "Explore" }}
@@ -110,11 +113,12 @@ onUnmounted(() => {
       }"
     >
       <LiquidGlass
-        class="h-12 w-12 shrink-0 cursor-pointer rounded-full bg-white/10 font-light text-white hover:bg-white hover:text-black active:scale-90"
+        class="h-12 w-12 shrink-0 cursor-pointer rounded-full font-light text-white hover:bg-white hover:text-black active:scale-90"
+        :class="route.path == '/gallery' || route.path == '/gallery/photo' ? 'bg-amber-800/50' : 'bg-slate-800/50'"
         :refraction="100"
         :edgeIntensity="1"
         :rimHighlights="0.5"
-        :blur="4"
+        :blur="1"
         :aria-label="'Go back'"
         @click="router.back()"
       >
@@ -138,12 +142,13 @@ onUnmounted(() => {
   </div>
   <!-- Router Page -->
   <div
-    class="fixed box-border overflow-hidden bg-slate-950/30 backdrop-blur-3xl text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
+    class="fixed box-border overflow-hidden backdrop-blur-3xl text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
     :class="[
       'top-5 md:top-20 bottom-0 inset-x-0 md:inset-x-20',
       isExploreClicked
         ? 'translate-y-0'
         : 'translate-y-full pointer-events-none',
+      route.path == '/gallery' || route.path == '/gallery/photo' ? 'bg-amber-950/60' : 'bg-slate-950/60'
     ]"
   >
     <RouterView v-slot="{ Component, route: viewRoute }">

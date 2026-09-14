@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-const images = ref([
-  "/photos/picture (1).jpg",
-  "/photos/picture (2).jpg",
-  "/photos/picture (3).jpg",
-  "/photos/picture (4).jpg",
-  "/photos/picture (5).jpg",
-  "/photos/picture (6).jpg",
-]);
+const imageModules = import.meta.glob(
+  "../assets/*.{jpg,jpeg,png,webp,avif}",
+  { eager: true, query: "?url", import: "default" },
+);
+const images = Object.entries(imageModules)
+  .sort(([firstPath], [secondPath]) =>
+    firstPath.localeCompare(secondPath, undefined, { numeric: true }),
+  )
+  .map(([, imageUrl]) => imageUrl as string);
 </script>
 <template>
   <div
@@ -20,7 +20,7 @@ const images = ref([
       v-for="(image, index) in images"
       :key="image"
       type="button"
-      class="group relative w-full h-full overflow-hidden bg-black/20"
+      class="group relative w-full h-full min-h-80 overflow-hidden bg-black/20"
       :aria-label="`Open photo ${index + 1}`"
       @click="router.push({ name: 'photo-view', query: { src: image } })"
     >

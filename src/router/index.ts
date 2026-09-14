@@ -21,7 +21,7 @@ const router = createRouter({
     {
       name: "photo-view",
       path: "/gallery/photo",
-      component: () => import("../views/PhotoView.vue"),
+      component: () => import("../views/PhotoViewerView.vue"),
     },
   ],
 })
