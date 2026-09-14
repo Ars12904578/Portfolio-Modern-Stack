@@ -1,12 +1,11 @@
 <script setup lang="ts">
 defineOptions({ inheritAttrs: false });
-import { onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch, type ComponentPublicInstance } from "vue";
 
 type Props = {
   blur?: number;
   draggable?: boolean;
   refraction?: number;
-  dispersion?: number;
   edgeIntensity?: number;
   rimHighlights?: number;
 };
@@ -15,7 +14,6 @@ const props = withDefaults(defineProps<Props>(), {
   blur: 0,
   draggable: false,
   refraction: 10,
-  dispersion: 4,
   edgeIntensity: 1,
   rimHighlights: 0.35,
 });
@@ -32,8 +30,8 @@ function buildDisplacementMap(
   const cornerX = Math.max(halfWidth - radius, 0);
   const cornerY = Math.max(halfHeight - radius, 0);
 
-  const maxDim = 64;
-  const minShortAxis = 24;
+  const maxDim = 48;
+  const minShortAxis = 16;
   const baseScale = Math.min(1, maxDim / Math.max(w, h));
   const cw = Math.max(w <= h ? minShortAxis : 1, Math.round(w * baseScale));
   const ch = Math.max(h <= w ? minShortAxis : 1, Math.round(h * baseScale));
@@ -120,15 +118,25 @@ const filterId = createFilterId();
 const glassEl = ref<HTMLElement | null>(null);
 const lgMap = ref<SVGFEImageElement | null>(null);
 const lgFilter = ref<SVGFilterElement | null>(null);
-const supportsSvgBackdropFilter =
+const supportsBackdropBlur =
   typeof CSS !== "undefined" &&
+  (CSS.supports("backdrop-filter", "blur(1px)") ||
+    CSS.supports("-webkit-backdrop-filter", "blur(1px)"));
+const supportsSvgBackdropFilter =
+  supportsBackdropBlur &&
   (CSS.supports("backdrop-filter", "url(#liquid-glass-filter)") ||
     CSS.supports("-webkit-backdrop-filter", "url(#liquid-glass-filter)"));
+const backdropBlurValue = computed(() => {
+  if (supportsSvgBackdropFilter) {
+    return `blur(${props.blur}px) url(#${filterId})`;
+  }
+  return supportsBackdropBlur ? `blur(${props.blur}px)` : "none";
+});
 
 let resizeObserver: ResizeObserver | null = null;
 let intersectionObserver: IntersectionObserver | null = null;
 let rafId = 0;
-let resizeDebounceId = 0;
+let dragRafId = 0;
 
 let isIntersecting = false;
 let renderPending = false;
@@ -138,15 +146,28 @@ let lastObservedHeight = 0;
 
 let lastRenderedWidth = 0;
 let lastRenderedHeight = 0;
+let lastMapKey = "";
 let dragStartX = 0;
 let dragStartY = 0;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let isDragging = false;
+let pendingDragX = 0;
+let pendingDragY = 0;
 
 function setDragOffset() {
   glassEl.value?.style.setProperty("--glass-drag-x", `${dragOffsetX}px`);
   glassEl.value?.style.setProperty("--glass-drag-y", `${dragOffsetY}px`);
+}
+
+function scheduleDragOffset() {
+  if (dragRafId) return;
+  dragRafId = requestAnimationFrame(() => {
+    dragRafId = 0;
+    dragOffsetX = pendingDragX;
+    dragOffsetY = pendingDragY;
+    setDragOffset();
+  });
 }
 
 function onPointerDown(event: PointerEvent) {
@@ -160,9 +181,9 @@ function onPointerDown(event: PointerEvent) {
 
 function onPointerMove(event: PointerEvent) {
   if (!isDragging) return;
-  dragOffsetX = event.clientX - dragStartX;
-  dragOffsetY = event.clientY - dragStartY;
-  setDragOffset();
+  pendingDragX = event.clientX - dragStartX;
+  pendingDragY = event.clientY - dragStartY;
+  scheduleDragOffset();
 }
 
 function stopDragging(event: PointerEvent) {
@@ -170,6 +191,13 @@ function stopDragging(event: PointerEvent) {
   isDragging = false;
   if (glassEl.value?.hasPointerCapture(event.pointerId)) {
     glassEl.value.releasePointerCapture(event.pointerId);
+  }
+  if (dragRafId) {
+    cancelAnimationFrame(dragRafId);
+    dragRafId = 0;
+    dragOffsetX = pendingDragX;
+    dragOffsetY = pendingDragY;
+    setDragOffset();
   }
 }
 
@@ -182,18 +210,22 @@ function updateFilter(width: number, height: number) {
   lastRenderedHeight = h;
   renderPending = false;
 
-  const dataUri = buildDisplacementMap(w, h, props.edgeIntensity);
   const map = lgMap.value;
   const filter = lgFilter.value;
-  if (!map || !filter || !dataUri) return;
-  const filterPadding = Math.max(
-    Math.abs(props.refraction) + Math.abs(props.dispersion),
-    1,
-  );
+  if (!map || !filter) return;
+
+  const mapKey = `${w}:${h}:${props.edgeIntensity}`;
+  if (mapKey !== lastMapKey) {
+    const dataUri = buildDisplacementMap(w, h, props.edgeIntensity);
+    if (!dataUri) return;
+    map.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUri);
+    map.setAttribute("href", dataUri);
+    lastMapKey = mapKey;
+  }
+
+  const filterPadding = Math.max(Math.abs(props.refraction), 1);
   map.setAttribute("width", String(w));
   map.setAttribute("height", String(h));
-  map.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUri);
-  map.setAttribute("href", dataUri);
   filter.setAttribute("x", String(-filterPadding));
   filter.setAttribute("y", String(-filterPadding));
   filter.setAttribute("width", String(w + filterPadding * 2));
@@ -215,8 +247,7 @@ function requestRender(width: number, height: number) {
 
 function requestResizeRender(width: number, height: number) {
   cancelAnimationFrame(rafId);
-  cancelAnimationFrame(resizeDebounceId);
-  resizeDebounceId = requestAnimationFrame(() => scheduleRender(width, height));
+  rafId = requestAnimationFrame(() => updateFilter(width, height));
 }
 
 function setGlassEl(el: Element | ComponentPublicInstance | null) {
@@ -290,9 +321,7 @@ onMounted(() => {
 watch(
   () => [
     props.refraction,
-    props.dispersion,
     props.edgeIntensity,
-    props.rimHighlights,
   ],
   () => {
     if (lastObservedWidth && lastObservedHeight) {
@@ -305,7 +334,7 @@ onUnmounted(() => {
   resizeObserver?.disconnect();
   intersectionObserver?.disconnect();
   cancelAnimationFrame(rafId);
-  cancelAnimationFrame(resizeDebounceId);
+  cancelAnimationFrame(dragRafId);
 });
 
 const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
@@ -314,19 +343,18 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
 <template>
   <div
     :ref="glass.setGlassEl"
-    class="glass-liquid select-none flex items-center justify-center"
+    :class="[
+      'glass-liquid select-none flex items-center justify-center',
+      { 'glass-liquid--blur-fallback': !supportsSvgBackdropFilter },
+    ]"
     v-bind="$attrs"
     @pointerdown="onPointerDown"
     @pointermove="onPointerMove"
     @pointerup="stopDragging"
     @pointercancel="stopDragging"
     :style="{
-      backdropFilter: supportsSvgBackdropFilter
-        ? `blur(${props.blur}px) url(#${glass.filterId})`
-        : `blur(${props.blur}px)`,
-      WebkitBackdropFilter: supportsSvgBackdropFilter
-        ? `blur(${props.blur}px) url(#${glass.filterId})`
-        : `blur(${props.blur}px)`,
+      backdropFilter: backdropBlurValue,
+      WebkitBackdropFilter: backdropBlurValue,
     }"
   >
     <slot />
@@ -356,61 +384,11 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
       <feDisplacementMap
         in="SourceGraphic"
         in2="displacementMap"
-        :scale="props.refraction + props.dispersion"
-        xChannelSelector="R"
-        yChannelSelector="G"
-        result="redDisplacement"
-      />
-      <feDisplacementMap
-        in="SourceGraphic"
-        in2="displacementMap"
         :scale="props.refraction"
         xChannelSelector="R"
         yChannelSelector="G"
-        result="greenDisplacement"
+        result="refracted"
       />
-      <feDisplacementMap
-        in="SourceGraphic"
-        in2="displacementMap"
-        :scale="props.refraction - props.dispersion"
-        xChannelSelector="R"
-        yChannelSelector="G"
-        result="blueDisplacement"
-      />
-      <feColorMatrix
-        in="redDisplacement"
-        type="matrix"
-        values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0"
-        result="redChannel"
-      />
-      <feColorMatrix
-        in="greenDisplacement"
-        type="matrix"
-        values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0"
-        result="greenChannel"
-      />
-      <feColorMatrix
-        in="blueDisplacement"
-        type="matrix"
-        values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0"
-        result="blueChannel"
-      />
-      <feBlend in="redChannel" in2="greenChannel" mode="screen" result="redGreen" />
-      <feBlend in="redGreen" in2="blueChannel" mode="screen" result="refracted" />
-      <feSpecularLighting
-        in="displacementMap"
-        surfaceScale="2"
-        specularConstant="1"
-        specularExponent="18"
-        lighting-color="white"
-        result="rimLight"
-      >
-        <feDistantLight azimuth="225" elevation="48" />
-      </feSpecularLighting>
-      <feComponentTransfer in="rimLight" result="rimHighlight">
-        <feFuncA type="linear" :slope="props.rimHighlights" />
-      </feComponentTransfer>
-      <feBlend in="refracted" in2="rimHighlight" mode="screen" />
     </filter>
   </svg>
 </template>
@@ -424,8 +402,13 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.1),
     inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 12px rgba(255, 255, 255, 0.1),
+    inset 0 0 12px color-mix(in srgb, white calc(v-bind("props.rimHighlights") * 100%), transparent),
     0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.glass-liquid--blur-fallback {
+  backdrop-filter: blur(v-bind("`${props.blur}px`"));
+  -webkit-backdrop-filter: blur(v-bind("`${props.blur}px`"));
 }
 
 .glass-liquid {
