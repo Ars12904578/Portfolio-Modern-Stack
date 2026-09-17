@@ -6,9 +6,9 @@ const router = useRouter();
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center w-full h-full">
+  <div class="flex flex-col items-center justify-start w-full h-full pb-27 overflow-y-auto">
     <div
-      class="relative grid h-full w-full min-h-0 grid-cols-1 items-center gap-6 overflow-y-auto p-6 lg:grid-cols-2 md:gap-10 md:p-10 box-border"
+      class="min-h-fit shrink-0 grid h-fit w-full grid-cols-1 items-center gap-6 p-6 lg:grid-cols-2 md:gap-10 md:p-10 box-border"
     >
       <div class="flex min-w-0 items-center justify-center">
         <div
@@ -26,11 +26,11 @@ const router = useRouter();
             <div class="text-xl text-white/70">HTML, CSS, JS, NodeJS.</div>
           </div>
           <LiquidGlass
-            class="absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-slate-900/50 text-white hover:scale-110 active:scale-90"
-            :blur="4"
-            :refraction="100"
-            :edge-intensity="0.5"
-            :rim-highlights="0.2"
+            class="cursor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-slate-900/50 text-white hover:scale-110 active:scale-90"
+            :blur="0"
+            :refraction="50"
+            :edge-intensity="1"
+            :rim-highlights="1"
             @click="router.push('/project')"
           >
             My Projects&nbsp;<ChevronRight />
@@ -62,11 +62,11 @@ const router = useRouter();
             <div class="text-xl text-white/70">Portrait & Macro.</div>
           </div>
           <LiquidGlass
-            class="absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-amber-900/30 text-white hover:scale-110 active:scale-90"
-            :blur="4"
-            :refraction="100"
-            :edge-intensity="0.5"
-            :rim-highlights="0.2"
+            class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-amber-900/30 text-white hover:scale-110 active:scale-90"
+            :blur="0"
+            :refraction="50"
+            :edge-intensity="1"
+            :rim-highlights="1"
             @click="router.push('/gallery')"
           >
             My Gallery&nbsp;<ChevronRight />
@@ -83,7 +83,10 @@ const router = useRouter();
         </div>
       </div>
     </div>
-    <div class="w-full p-10"></div>
+    <!-- Second Page -->
+    <!-- <div class="w-full min-h-5 shrink-0 bg-white/50">
+    
+    </div> -->
   </div>
 </template>
 <style scoped>

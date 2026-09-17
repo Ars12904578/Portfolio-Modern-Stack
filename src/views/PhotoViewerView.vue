@@ -15,9 +15,31 @@ const image = computed(() => {
       <img
         :src="image"
         alt="Selected photo"
-        class="h-full w-full object-contain transition-opacity duration-300"
-        :class="imageLoaded ? 'opacity-100' : 'opacity-0'"
+        class="photo h-full w-full object-contain"
+        :class="imageLoaded ? 'photo-loaded' : ''"
         @load="imageLoaded = true"
       />
   </div>
 </template>
+
+<style scoped>
+.photo {
+  opacity: 0;
+  transform: scale(0.92);
+}
+
+.photo-loaded {
+  animation: photo-open 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes photo-open {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+</style>

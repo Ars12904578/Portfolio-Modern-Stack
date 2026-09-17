@@ -486,16 +486,23 @@ const glass = { filterId, setGlassEl, setLgMap, setLgFilter };
 <style scoped>
 .glass-liquid {
   box-sizing: border-box;
+  overflow: hidden;
   contain: layout style paint;
   isolation: isolate;
   translate: var(--glass-drag-x, 0px) var(--glass-drag-y, 0px);
-  cursor: v-bind("props.draggable ? 'grab' : 'auto'");
   touch-action: v-bind("props.draggable ? 'none' : 'auto'");
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.04) 42%,
+    rgba(0, 0, 0, 0.08)
+  );
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.1),
-    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 12px color-mix(in srgb, white calc(v-bind("props.rimHighlights") * 100%), transparent),
-    0 8px 32px rgba(0, 0, 0, 0.1);
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.16),
+    inset 0 0 18px color-mix(in srgb, white calc(v-bind("props.rimHighlights") * 70%), transparent),
+    0 7px 24px rgba(0, 0, 0, 0.18);
 }
 
 .glass-liquid--blur-fallback {

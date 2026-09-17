@@ -3,11 +3,11 @@ import LiquidGlass from "@/components/LiquidGlass.vue";
 </script>
 <template>
   <div
-    class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 h-full w-full items-center justify-center overflow-auto p-2 pb-20"
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 h-full w-full items-center justify-center overflow-auto p-2 pb-20"
   >
     <div
-      class="w-full h-full min-h-60 flex items-center justify-center relative"
-      v-for="value in 1"
+      class="w-full h-full aspect-square flex items-center justify-center relative"
+      v-for="value in 12"
       :key="value"
     >
       <div class="w-9/10 h-9/10 bg-white/30 rounded-4xl"></div>
