@@ -94,7 +94,9 @@ onUnmounted(() => {
     <LiquidGlass
       class="w-fit hover:scale-105 active:scale-95 font-light rounded-full text-white hover:bg-white hover:text-black cursor-pointer flex items-center justify-center transition-[background-color,padding,font-size,color] duration-300 ease-out"
       :class="[
-        route.path == '/' ? 'p-5 px-15 text-3xl gap-5' : 'p-3 px-8 text-2xl gap-2',
+        route.path == '/'
+          ? 'p-5 px-15 text-3xl gap-5'
+          : 'p-3 px-8 text-2xl gap-2',
 
         route.path == '/gallery' || route.path == '/gallery/photo'
           ? isExploreClicked
@@ -132,29 +134,27 @@ onUnmounted(() => {
     </LiquidGlass>
 
     <div
-      class="back-button-wrap"
+      class="back-button-wrap flex items-center hover:scale-105 active:scale-95"
       :class="{
         'back-button-wrap--visible': isExploreClicked && route.path !== '/',
       }"
     >
-      <div class="back-button-inner">
-        <LiquidGlass
-          class="w-15 aspect-square shrink-0 cursor-pointer rounded-full font-light text-white hover:bg-white hover:text-black active:scale-90 transition-transform duration-200"
-          :class="
-            route.path == '/gallery' || route.path == '/gallery/photo'
-              ? 'bg-amber-800/50'
-              : 'bg-slate-800/50'
-          "
-          :refraction="100"
-          :edgeIntensity="1"
-          :rimHighlights="0.5"
-          :blur="1"
-          :aria-label="'Go back'"
-          @click="router.back()"
-        >
-          <ChevronLeft />
-        </LiquidGlass>
-      </div>
+      <LiquidGlass
+        class="w-15 aspect-square shrink-0 cursor-pointer rounded-full font-light text-white hover:bg-white hover:text-black active:scale-90 transition-transform duration-200"
+        :class="
+          route.path == '/gallery' || route.path == '/gallery/photo'
+            ? 'bg-amber-800/50'
+            : 'bg-slate-800/50'
+        "
+        :refraction="100"
+        :edgeIntensity="1"
+        :rimHighlights="0.5"
+        :blur="1"
+        :aria-label="'Go back'"
+        @click="router.back()"
+      >
+        <ChevronLeft />
+      </LiquidGlass>
     </div>
   </div>
   <!-- Floaters -->
@@ -175,7 +175,7 @@ onUnmounted(() => {
   <div
     class="fixed box-border overflow-hidden backdrop-blur-sm text-white flex rounded-t-4xl transition-transform duration-300 ease-out"
     :class="[
-      'content-box-glass top-5 sm:inset-x-5 bottom-0 inset-x-2 md:inset-x-10',
+      'top-5 sm:inset-x-5 bottom-0 inset-x-0 md:inset-x-10',
       isExploreClicked
         ? 'translate-y-0'
         : 'translate-y-full pointer-events-none',
@@ -209,28 +209,25 @@ onUnmounted(() => {
   animation: loading 1s ease infinite;
 }
 
-/* Palitan ang buong .back-button-slot rules */
 .back-button-wrap {
-  display: grid;
-  grid-template-columns: 0fr;
+  width: 0;
   opacity: 0;
+  transform: scale(0.8);
   margin-left: 0;
+  overflow: visible; /* hindi na kailangan i-clip, self-hiding na sa scale+width 0 */
   transition:
-    grid-template-columns 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    width 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.2s ease;
+    opacity 0.2s ease,
+    transform 0.25s ease;
   pointer-events: none;
 }
 .back-button-wrap--visible {
-  grid-template-columns: 1fr;
-  margin-left: 0.5rem; /* dito na lang ilalagay yung "gap" — dynamic, di na laging active */
+  width: 3.75rem; /* match sa w-15 */
+  margin-left: 0.5rem;
   opacity: 1;
+  transform: scale(1);
   pointer-events: auto;
-}
-.back-button-inner {
-  overflow: hidden;
-  min-width: 0; /* required para gumana yung grid-template-columns 0fr shrink */
-  display: flex;
 }
 
 .route-enter-active,
