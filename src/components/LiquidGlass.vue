@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<Props>(), {
   refraction: 10,
   edgeIntensity: 1,
   rimHighlights: 0.35,
-  quality: "auto",
+  quality: "high",
   resizeGranularity: 8,
 });
 
