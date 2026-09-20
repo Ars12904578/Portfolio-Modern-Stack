@@ -12,19 +12,19 @@ const route = useRoute();
 const floatings = [
   {
     title: "Programmer",
-    location: "top-5/20 left-13/20",
+    location: "top-4/20 left-15/20 sm:top-5/20 sm:left-13/20",
   },
   {
     title: "Full Stack",
-    location: "top-7/20 left-9/23",
+    location: "top-10/20 left-4/20 sm:top-9/20 sm:left-6/20 md:left-9/23 md:top-7/23",
   },
   {
     title: "Tinkering",
-    location: "top-15/20 left-7/20",
+    location: "top-16/20 left-5/20 sm:top-15/20 sm:left-7/20",
   },
   {
     title: "Technical Director",
-    location: "top-12/20 left-13/20",
+    location: "top-13/20 left-15/20 sm:top-12/20 sm:left-13/20",
   },
 ];
 
@@ -92,9 +92,9 @@ const isGallery = computed(() =>
     <source src="/assets/bg2.mp4" type="video/mp4" />
   </video>
   <!-- Reactive text of my name -->
-  <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
+  <div class="w-full fixed h-2/8 md:h-4/10 flex items-center justify-center">
     <span
-      class="text-center text-white text-6xl md:text-7xl lg:text-8xl font-semibold text-shadow-lg"
+      class="text-center text-white text-6xl md:text-8xl font-semibold text-shadow-lg"
     >
       Arvi Jay <br />
       Tungpalan
