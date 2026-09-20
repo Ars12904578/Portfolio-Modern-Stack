@@ -63,6 +63,8 @@ const isGallery = computed(() =>
 
 <template>
   <!-- Background video -->
+  <div class="fixed inset-0"
+  :class="isGallery ? 'bg-amber-900' : 'bg-slate-900'"></div>
   <video
     autoplay
     muted
