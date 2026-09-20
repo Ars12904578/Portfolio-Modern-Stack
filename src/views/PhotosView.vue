@@ -27,7 +27,9 @@ const images = Object.entries(imageModules)
       <img
         :src="image"
         :alt="`Photo ${index + 1}`"
-        class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+        loading="lazy"
+        decoding="async"
+        class="h-full w-full object-cover duration-300 group-hover:scale-105"
       />
     </button>
   </div>

@@ -1,4 +1,7 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { ref } from "vue";
+import { createRouter, createWebHistory } from "vue-router";
+
+export const isRouteLoading = ref(false);
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,6 +27,18 @@ const router = createRouter({
       component: () => import("../views/PhotoViewerView.vue"),
     },
   ],
-})
+});
+
+router.beforeEach(() => {
+  isRouteLoading.value = true;
+});
+
+router.afterEach(() => {
+  isRouteLoading.value = false;
+});
+
+router.onError(() => {
+  isRouteLoading.value = false;
+});
 
 export default router

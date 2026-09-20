@@ -26,7 +26,7 @@ const router = useRouter();
             <div class="text-xl text-white/70">HTML, CSS, JS, NodeJS.</div>
           </div>
           <LiquidGlass
-            class="cursor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-slate-900/50 text-white hover:scale-110 active:scale-90"
+            class="cursor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-cyan-900/50 text-white hover:scale-110 active:scale-90"
             :blur="5"
             :refraction="20"
             :edge-intensity="0.5"
@@ -35,7 +35,7 @@ const router = useRouter();
             My Projects&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
-            class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-slate-900/30 text-white"
+            class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-cyan-900/30 text-white"
             :blur="1"
             :refraction="100"
             :edge-intensity="1"
@@ -60,7 +60,7 @@ const router = useRouter();
             <div class="text-xl text-white/70">Portrait & Macro.</div>
           </div>
           <LiquidGlass
-            class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-amber-900/30 text-white hover:scale-110 active:scale-90"
+            class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-yellow-900/30 text-white hover:scale-110 active:scale-90"
             :blur="5"
             :refraction="20"
             :edge-intensity="0.5"
@@ -69,7 +69,7 @@ const router = useRouter();
             My Gallery&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
-            class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-slate-900/30 text-white"
+            class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-cyan-900/30 text-white"
             :blur="1"
             :refraction="100"
             :edge-intensity="1"

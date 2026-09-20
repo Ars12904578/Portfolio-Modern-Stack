@@ -11,7 +11,7 @@ import LiquidGlass from "@/components/LiquidGlass.vue";
       :key="value"
     >
       <div class="w-9/10 h-9/10 bg-white/30 rounded-4xl"></div>
-	  <LiquidGlass class="absolute bottom-1/20 inset-x-1/20 scale-100 min-h-14 p-0 rounded-4xl bg-slate-700/50 hover:scale-110 active:scale-90 cursor-pointer">Under Development</LiquidGlass>
+	  <LiquidGlass class="absolute bottom-1/20 inset-x-1/20 scale-100 min-h-14 p-0 rounded-4xl bg-cyan-700/50 hover:scale-110 active:scale-90 cursor-pointer">Under Development</LiquidGlass>
     </div>
   </div>
 </template>
