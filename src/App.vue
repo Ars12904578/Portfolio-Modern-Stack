@@ -6,8 +6,29 @@ import { useRouter, useRoute } from "vue-router";
 const isLoaded = ref(false);
 const isExploreClicked = ref(false);
 const isLoaderVisible = ref(true);
+const bgVideoOne = ref<HTMLVideoElement | null>(null);
+const bgVideoTwo = ref<HTMLVideoElement | null>(null);
 const router = useRouter();
 const route = useRoute();
+
+const resetBackgroundVideos = () => {
+  [bgVideoOne.value, bgVideoTwo.value].forEach((video) => {
+    if (!video) return;
+
+    video.pause();
+    video.currentTime = 0;
+    void video.play().catch(() => {});
+  });
+};
+
+const toggleExplore = () => {
+  const nextValue = !isExploreClicked.value;
+  isExploreClicked.value = nextValue;
+
+  if (!nextValue) {
+    resetBackgroundVideos();
+  }
+};
 
 const floatings = [
   {
@@ -16,7 +37,7 @@ const floatings = [
   },
   {
     title: "Full Stack",
-    location: "top-10/20 left-4/20 sm:top-9/20 sm:left-6/20 md:left-9/23 md:top-7/23",
+    location: "top-10/20 left-4/20 sm:top-9/20 sm:left-6/20 md:left-8/23 md:top-7/23",
   },
   {
     title: "Tinkering",
@@ -69,8 +90,9 @@ const isGallery = computed(() =>
 <template>
   <!-- Background video -->
   <div class="fixed inset-0"
-  :class="isGallery ? 'bg-amber-900' : 'bg-slate-900'"></div>
+  :class="isGallery ? 'bg-[#684419]' : 'bg-[#183f60]'"></div>
   <video
+    ref="bgVideoOne"
     autoplay
     muted
     loop
@@ -81,6 +103,7 @@ const isGallery = computed(() =>
     <source src="/assets/bg.mp4" type="video/mp4" />
   </video>
   <video
+    ref="bgVideoTwo"
     autoplay
     muted
     loop
@@ -126,7 +149,7 @@ const isGallery = computed(() =>
       :refraction="100"
       :edgeIntensity="1"
       :blur="5"
-      @click="isExploreClicked = !isExploreClicked"
+      @click="toggleExplore"
     >
       <span>{{ isExploreClicked ? "Close" : "Explore" }}</span>
       <span class="relative w-5 h-8 inline-block">

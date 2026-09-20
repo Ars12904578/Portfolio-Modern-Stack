@@ -9,6 +9,7 @@ type Props = {
   draggable?: boolean;
   refraction?: number;
   edgeIntensity?: number;
+  bezelDepth?: number;
   rimHighlights?: number;
   quality?: Quality;
   resizeGranularity?: number;
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   draggable: false,
   refraction: 50,
   edgeIntensity: 0.8,
+  bezelDepth: 0.2,
   rimHighlights: 0.5,
   quality: "auto",
   resizeGranularity: 8,
@@ -57,8 +59,9 @@ function buildDisplacementMap(
   w: number,
   h: number,
   edgeIntensity: number,
+  bezelDepth: number,
 ): string {
-  const edgeWidth = Math.max(Math.min(w, h) * 0.18, 1);
+  const edgeWidth = Math.max(Math.min(w, h) * Math.max(0, Math.min(bezelDepth, 1)), 1);
   const radius = Math.min(26, Math.max(Math.min(w, h) / 2 - 1, 0));
   const halfWidth = w / 2;
   const halfHeight = h / 2;
@@ -269,9 +272,9 @@ function updateFilter(width: number, height: number) {
   const filter = lgFilter.value;
   if (!map || !filter) return;
 
-  const mapKey = `${w}:${h}:${props.edgeIntensity}`;
+  const mapKey = `${w}:${h}:${props.edgeIntensity}:${props.bezelDepth}`;
   if (mapKey !== lastMapKey) {
-    const dataUri = buildDisplacementMap(w, h, props.edgeIntensity);
+    const dataUri = buildDisplacementMap(w, h, props.edgeIntensity, props.bezelDepth);
     if (!dataUri) return;
     map.setAttributeNS("http://www.w3.org/1999/xlink", "href", dataUri);
     map.setAttribute("href", dataUri);
@@ -386,7 +389,7 @@ onMounted(() => {
 });
 
 watch(
-  () => [props.refraction, props.edgeIntensity, isLowPower.value],
+  () => [props.refraction, props.edgeIntensity, props.bezelDepth, isLowPower.value],
   () => {
     // Force a fresh map build (or a switch to/from the blur-only fallback)
     // even if the observed size hasn't changed.
