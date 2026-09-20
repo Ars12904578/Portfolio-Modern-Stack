@@ -27,20 +27,18 @@ const router = useRouter();
           </div>
           <LiquidGlass
             class="cursor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-slate-900/50 text-white hover:scale-110 active:scale-90"
-            :blur="0"
-            :refraction="50"
-            :edge-intensity="1"
-            :rim-highlights="1"
+            :blur="3"
+            :refraction="20"
+            :edge-intensity="0.5"
             @click="router.push('/project')"
           >
             My Projects&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
             class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-slate-900/30 text-white"
-            :blur="1"
-            :refraction="50"
-            :edge-intensity="2"
-            :rim-highlights="0.5"
+            :blur="0"
+            :refraction="100"
+            :edge-intensity="1"
           >
             <Code />
           </LiquidGlass>
@@ -63,20 +61,18 @@ const router = useRouter();
           </div>
           <LiquidGlass
             class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-amber-900/30 text-white hover:scale-110 active:scale-90"
-            :blur="0"
-            :refraction="50"
-            :edge-intensity="1"
-            :rim-highlights="1"
+            :blur="3"
+            :refraction="20"
+            :edge-intensity="0.5"
             @click="router.push('/gallery')"
           >
             My Gallery&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
             class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-slate-900/30 text-white"
-            :blur="1"
-            :refraction="50"
-            :edge-intensity="2"
-            :rim-highlights="0.5"
+            :blur="0"
+            :refraction="100"
+            :edge-intensity="1"
           >
             <Camera />
           </LiquidGlass>

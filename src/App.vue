@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import LiquidGlass from "./components/LiquidGlass.vue";
-import { ref, onMounted, onUnmounted, watch } from "vue";
-let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
-import { Search, ChevronLeft, X } from "@lucide/vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { Search, ChevronLeft, ChevronDown } from "@lucide/vue";
 import { useRouter, useRoute } from "vue-router";
 const isLoaded = ref(false);
 const isExploreClicked = ref(false);
 const isLoaderVisible = ref(true);
 const router = useRouter();
 const route = useRoute();
-const floatings = ref([
+const floatings = [
   {
     title: "Programmer",
     location: "top-5/20 left-14/20 sm:top-5/20 sm:left-11/20",
@@ -22,29 +21,30 @@ const floatings = ref([
     title: "Technical Director",
     location: "top-14/20 left-16/20 sm:left-13/20",
   },
-]);
+];
 
-const floatingGlassSettings = ref({
+const floatingGlassSettings = {
   refraction: 100,
-  edgeIntensity: 1,
-  rimHighlights: 0.2,
-  blur: 0,
-});
+  edgeIntensity: 0.5,
+  blur: 2,
+};
 
 watch(
   () => route.path,
   (path) => {
     if (path !== "/") {
       isExploreClicked.value = true;
-    } else {
-      isExploreClicked.value = false; // reset pag bumalik sa home
     }
   },
 );
 
+let loaderExitTimer: ReturnType<typeof setTimeout> | undefined;
+let loaderTimer: ReturnType<typeof setTimeout> | undefined;
+
 onMounted(() => {
-  setTimeout(() => {
+  loaderTimer = setTimeout(() => {
     isLoaded.value = true;
+
     loaderExitTimer = setTimeout(() => {
       isLoaderVisible.value = false;
     }, 450);
@@ -52,30 +52,43 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (loaderTimer) clearTimeout(loaderTimer);
   if (loaderExitTimer) clearTimeout(loaderExitTimer);
 });
+
+const isGallery = computed(() =>
+  ["/gallery", "/gallery/photo"].includes(route.path),
+);
 </script>
 
 <template>
-  <!-- White background picture -->
-  <img
-    src="/bg.jpg"
-    alt="bg"
+  <!-- Background video -->
+  <video
+    autoplay
+    muted
+    loop
+    playsinline
     class="object-cover fixed w-full h-dvh object-center"
-  />
-  <!-- Design -->
-  <div
-    class="fixed w-250 aspect-square rounded-full -bottom-100 left-5/10 -translate-x-1/2"
-    :style="{
-      background:
-        route.path == '/gallery' || route.path == '/gallery/photo'
-          ? 'radial-gradient(circle, rgba(120, 53, 15, 1) 0%, rgba(120, 53, 15, 0.7) 25%, transparent 50%)'
-          : 'radial-gradient(circle, rgba(15, 23, 42, 1) 0%, rgba(15, 23, 42, 0.7) 25%, transparent 50%)',
-    }"
-  ></div>
+    aria-hidden="true"
+  >
+    <source src="/assets/bg.mp4" type="video/mp4" />
+  </video>
+  <video
+    autoplay
+    muted
+    loop
+    playsinline
+    class="object-cover fixed w-full h-dvh object-center"
+    :class="isGallery ? 'opacity-100' : 'opacity-0'"
+    aria-hidden="true"
+  >
+    <source src="/assets/bg2.mp4" type="video/mp4" />
+  </video>
   <!-- Reactive text of my name -->
   <div class="w-full fixed h-2/10 md:h-5/11 flex items-center justify-center">
-    <span class="text-center text-6xl md:text-7xl lg:text-8xl font-semibold">
+    <span
+      class="text-center text-white text-6xl md:text-7xl lg:text-8xl font-semibold text-shadow-lg"
+    >
       Arvi Jay <br />
       Tungpalan
     </span>
@@ -84,8 +97,7 @@ onUnmounted(() => {
   <img
     src="/assets/Tungpalan__Arvi_Jay_B-removebg-preview.png"
     alt="Arvi"
-    class="object-contain object-bottom w-fit h-8/10 drop-shadow-[0_10px_20px_rgba(0,0,0,1)] fixed bottom-0 left-1/2 -translate-x-1/2"
-    :class="isExploreClicked ? 'scale-50' : 'scale-100'"
+    class="object-contain object-bottom w-fit h-8/10 fixed bottom-0 left-1/2 -translate-x-1/2 drop-shadow-[0_0_50px_white]"
   />
   <!-- CTA button -->
   <div
@@ -98,7 +110,7 @@ onUnmounted(() => {
           ? 'p-5 px-15 text-3xl gap-5'
           : 'p-3 px-8 text-2xl gap-2',
 
-        route.path == '/gallery' || route.path == '/gallery/photo'
+        isGallery
           ? isExploreClicked
             ? 'bg-amber-800/50'
             : 'bg-amber-800/20'
@@ -106,8 +118,7 @@ onUnmounted(() => {
       ]"
       :refraction="100"
       :edgeIntensity="1"
-      :rimHighlights="0.5"
-      :blur="1"
+      :blur="5"
       @click="isExploreClicked = !isExploreClicked"
     >
       <span>{{ isExploreClicked ? "Close" : "Explore" }}</span>
@@ -121,7 +132,7 @@ onUnmounted(() => {
           "
           :size="route.path == '/' ? 32 : 22"
         />
-        <X
+        <ChevronDown
           class="absolute inset-1/2 -translate-1/2 transition-all duration-200"
           :class="
             !isExploreClicked
@@ -141,15 +152,10 @@ onUnmounted(() => {
     >
       <LiquidGlass
         class="w-15 aspect-square shrink-0 cursor-pointer rounded-full font-light text-white hover:bg-white hover:text-black active:scale-90 transition-transform duration-200"
-        :class="
-          route.path == '/gallery' || route.path == '/gallery/photo'
-            ? 'bg-amber-800/50'
-            : 'bg-slate-800/50'
-        "
+        :class="isGallery ? 'bg-amber-800/50' : 'bg-slate-800/50'"
         :refraction="100"
         :edgeIntensity="1"
-        :rimHighlights="0.5"
-        :blur="1"
+        :blur="5"
         :aria-label="'Go back'"
         @click="router.back()"
       >
@@ -179,9 +185,7 @@ onUnmounted(() => {
       isExploreClicked
         ? 'translate-y-0'
         : 'translate-y-full pointer-events-none',
-      route.path == '/gallery' || route.path == '/gallery/photo'
-        ? 'bg-amber-950/70'
-        : 'bg-slate-950/70',
+      isGallery ? 'bg-amber-950/70' : 'bg-slate-950/70',
     ]"
   >
     <RouterView v-slot="{ Component, route: viewRoute }">

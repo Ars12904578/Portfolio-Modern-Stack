@@ -10,34 +10,24 @@ type Props = {
   refraction?: number;
   edgeIntensity?: number;
   rimHighlights?: number;
-  /**
-   * "high"  -> always use the SVG feDisplacementMap refraction effect.
-   * "low"   -> never build the displacement map, just use backdrop-filter blur.
-   * "auto"  -> detect device capability once and pick high/low automatically.
-   */
   quality?: Quality;
-  /** Round observed size to this many px before rebuilding the displacement map. */
   resizeGranularity?: number;
 };
 
 const props = withDefaults(defineProps<Props>(), {
-  blur: 0,
+  blur: 2,
   draggable: false,
-  refraction: 10,
-  edgeIntensity: 1,
-  rimHighlights: 0.35,
+  refraction: 50,
+  edgeIntensity: 0.8,
+  rimHighlights: 0.5,
   quality: "high",
   resizeGranularity: 8,
 });
 
-// ---------------------------------------------------------------------------
-// Device capability detection (runs once, cheap, no layout thrash)
-// ---------------------------------------------------------------------------
 function detectLowPowerDevice(): boolean {
   if (typeof navigator === "undefined") return false;
 
   const cores = navigator.hardwareConcurrency ?? 4;
-  // deviceMemory is non-standard but present on most Chromium browsers.
   const memory = (navigator as unknown as { deviceMemory?: number }).deviceMemory ?? 4;
 
   const reducedMotion =
@@ -46,13 +36,9 @@ function detectLowPowerDevice(): boolean {
     typeof matchMedia !== "undefined" &&
     matchMedia("(prefers-reduced-transparency: reduce)").matches;
 
-  // Any one of these is a reasonable signal that live SVG refraction
-  // (feDisplacementMap recomputed every composited frame) will be janky.
   return reducedMotion || reducedTransparency || cores <= 4 || memory <= 4;
 }
 
-// Detected once per app load, not per-instance, so multiple glass panels
-// don't each pay for their own navigator/matchMedia lookups.
 let cachedLowPowerDetection: boolean | null = null;
 function isLowPowerDevice(): boolean {
   if (cachedLowPowerDetection === null) {
@@ -67,9 +53,6 @@ const isLowPower = computed(() => {
   return isLowPowerDevice();
 });
 
-// ---------------------------------------------------------------------------
-// Displacement map generation (only ever runs when refraction is enabled)
-// ---------------------------------------------------------------------------
 function buildDisplacementMap(
   w: number,
   h: number,
