@@ -26,7 +26,7 @@ const toggleExplore = () => {
   const nextValue = !isExploreClicked.value;
   isExploreClicked.value = nextValue;
 
-  if (!nextValue) {
+  if (!isExploreClicked.value) {
     resetBackgroundVideos();
   }
 };
@@ -50,12 +50,6 @@ const floatings = [
     location: "top-13/20 left-15/20 sm:top-12/20 sm:left-13/20",
   },
 ];
-
-const floatingGlassSettings = {
-  refraction: 100,
-  edgeIntensity: 0.8,
-  blur: 1,
-};
 
 watch(
   () => route.path,
@@ -146,8 +140,6 @@ const isGallery = computed(() =>
       <LiquidGlass
         class="hover:scale-110 active:scale-95 w-15 aspect-square shrink-0 cursor-pointer rounded-full font-light text-white hover:bg-white hover:text-black duration-200"
         :class="isGallery ? 'bg-yellow-800/50' : 'bg-slate-800/50'"
-        :refraction="100"
-        :edgeIntensity="1"
         :blur="5"
         :aria-label="'Go back'"
         @click="router.back()"
@@ -170,8 +162,6 @@ const isGallery = computed(() =>
             : 'bg-yellow-800/50'
           : 'bg-slate-800/50',
       ]"
-      :refraction="100"
-      :edgeIntensity="1"
       :blur="5"
       @click="toggleExplore"
     >
@@ -206,7 +196,7 @@ const isGallery = computed(() =>
   >
     <LiquidGlass
       class="cursor-grab p-2 px-4 text-white text-shadow-xl font-semibold bg-black/40 text-xl rounded-2xl hover:scale-105 active:scale-95"
-      v-bind="floatingGlassSettings"
+      :blur="1"
       draggable
     >
       {{ floating.title }}

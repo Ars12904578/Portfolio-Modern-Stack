@@ -19,9 +19,9 @@ const props = withDefaults(defineProps<Props>(), {
   blur: 2,
   draggable: false,
   refraction: 50,
-  edgeIntensity: 0.8,
-  bezelDepth: 0.2,
-  rimHighlights: 0.5,
+  edgeIntensity: 0.5,
+  bezelDepth: 0.7,
+  rimHighlights: 0.2,
   quality: "auto",
   resizeGranularity: 8,
 });

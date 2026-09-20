@@ -27,18 +27,14 @@ const router = useRouter();
           </div>
           <LiquidGlass
             class="cursor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-cyan-900/50 text-white hover:scale-110 active:scale-90"
-            :blur="5"
-            :refraction="20"
-            :edge-intensity="0.5"
+            :blur="10"
             @click="router.push('/project')"
           >
             My Projects&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
             class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-cyan-900/30 text-white"
-            :blur="1"
-            :refraction="100"
-            :edge-intensity="1"
+            :blur="10"
           >
             <Code />
           </LiquidGlass>
@@ -60,19 +56,15 @@ const router = useRouter();
             <div class="text-xl text-white/70">Portrait & Macro.</div>
           </div>
           <LiquidGlass
-            class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-yellow-900/30 text-white hover:scale-110 active:scale-90"
-            :blur="5"
-            :refraction="20"
-            :edge-intensity="0.5"
+            class="cusor-pointer absolute bottom-0 inset-x-0 rounded-4xl py-5 text-2xl bg-yellow-700/20 text-white hover:scale-110 active:scale-90"
+            :blur="10"
             @click="router.push('/gallery')"
           >
             My Gallery&nbsp;<ChevronRight />
           </LiquidGlass>
           <LiquidGlass
             class="absolute top-5 right-5 rounded-full w-15 h-15 text-2xl bg-cyan-900/30 text-white"
-            :blur="1"
-            :refraction="100"
-            :edge-intensity="1"
+            :blur="10"
           >
             <Camera />
           </LiquidGlass>
