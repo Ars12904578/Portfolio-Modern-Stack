@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   refraction: 50,
   edgeIntensity: 0.8,
   rimHighlights: 0.5,
-  quality: "high",
+  quality: "auto",
   resizeGranularity: 8,
 });
 

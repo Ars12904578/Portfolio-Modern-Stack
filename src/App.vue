@@ -8,25 +8,30 @@ const isExploreClicked = ref(false);
 const isLoaderVisible = ref(true);
 const router = useRouter();
 const route = useRoute();
+
 const floatings = [
   {
     title: "Programmer",
-    location: "top-5/20 left-14/20 sm:top-5/20 sm:left-11/20",
+    location: "top-5/20 left-13/20",
   },
   {
-    title: "Editor",
-    location: "top-11/20 left-3/20 sm:top-11/20 sm:left-8/20",
+    title: "Full Stack",
+    location: "top-7/20 left-9/23",
+  },
+  {
+    title: "Tinkering",
+    location: "top-15/20 left-7/20",
   },
   {
     title: "Technical Director",
-    location: "top-14/20 left-16/20 sm:left-13/20",
+    location: "top-12/20 left-13/20",
   },
 ];
 
 const floatingGlassSettings = {
   refraction: 100,
-  edgeIntensity: 0.5,
-  blur: 2,
+  edgeIntensity: 0.8,
+  blur: 1,
 };
 
 watch(

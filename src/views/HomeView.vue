@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import LiquidGlass from "../components/LiquidGlass.vue";
-import { ChevronRight, Code, Camera } from "@lucide/vue";
+import { ChevronRight, Code, Camera, Quote } from "@lucide/vue";
 import { useRouter } from "vue-router";
 const router = useRouter();
 </script>
@@ -80,9 +80,12 @@ const router = useRouter();
       </div>
     </div>
     <!-- Second Page -->
-    <!-- <div class="w-full min-h-5 shrink-0 bg-white/50">
-    
-    </div> -->
+    <div class="w-full min-h-fit shrink-0 box-border px-5 sm:px-20 flex flex-col items-center justify-center gap-5">
+      <!-- <div class="w-fit h-fit bg-blue-700/10 rounded-4xl text-2xl p-5 md:p-10 border-5 border-white/30 flex flex-col sm:flex-row gap-5">
+        <Quote :size="50" class="min-w-8 min-h-8"/><span>Ever tried. Ever failed. No matter. Try again. Fail again. Fail better. <br> <strong class="truncate">- Samuel Beckett</strong></span>
+      </div> -->
+      
+    </div>
   </div>
 </template>
 <style scoped>
